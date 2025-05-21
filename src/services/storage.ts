@@ -11,19 +11,29 @@ class StorageService {
         return window.localStorage;
     }
 
-    saveSite(url: string): void {
+    saveRecentSites(sites: RecentSite[]): void {
+        try {
+            this.getStorage().setItem(STORAGE_KEY, JSON.stringify(sites));
+            console.log('Recent sites saved:', sites);
+        } catch (error) {
+            console.error('Error saving to storage:', error);
+        }
+    }
+
+    saveSite(url: string, title: string = ''): void {
         const sites = this.getRecentSites();
         const existingSiteIndex = sites.findIndex(site => site.url === url);
         
         if (existingSiteIndex !== -1) {
-            // Update existing site's timestamp
+            // Remove existing site
             sites.splice(existingSiteIndex, 1);
         }
 
         // Add new site at the beginning
         sites.unshift({
             url,
-            analyzedAt: new Date()
+            title,
+            date: new Date().toISOString()
         });
 
         // Keep only the most recent sites
@@ -31,7 +41,7 @@ class StorageService {
             sites.pop();
         }
 
-        this.getStorage().setItem(STORAGE_KEY, JSON.stringify(sites));
+        this.saveRecentSites(sites);
     }
 
     getRecentSites(): RecentSite[] {
@@ -40,10 +50,8 @@ class StorageService {
             if (!data) return [];
 
             const sites = JSON.parse(data);
-            return sites.map((site: any) => ({
-                ...site,
-                analyzedAt: new Date(site.analyzedAt)
-            }));
+            console.log('Retrieved recent sites:', sites);
+            return sites;
         } catch (error) {
             console.error('Error reading from storage:', error);
             return [];

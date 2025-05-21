@@ -60,17 +60,27 @@ const App: React.FC = () => {
         setError(null);
         
         try {
+            console.log(`Analyzing URL: ${url}`);
             const result = await seoAnalyzer.analyze(url);
+            console.log('Analysis result:', result);
+            
             setAnalysis(result);
-            storage.saveSite(url);
-            setRecentSites(storage.getRecentSites());
+            
+            // Update recent sites
+            const updatedRecentSites = [
+                { url, title: result.title.content, date: new Date().toISOString() },
+                ...recentSites.filter(site => site.url !== url).slice(0, 4)
+            ];
+            setRecentSites(updatedRecentSites);
+            storage.saveRecentSites(updatedRecentSites);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error analyzing site:', err);
+            setError(err instanceof Error ? err.message : 'Failed to analyze the website. Please check the URL and try again.');
             setAnalysis(null);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [recentSites]);
 
     const handleDeleteSite = useCallback((url: string) => {
         storage.removeSite(url);

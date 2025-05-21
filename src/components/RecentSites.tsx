@@ -50,10 +50,8 @@ const RecentSites: React.FC<RecentSitesProps> = ({
                         }}
                     >
                         <ListItemText
-                            primary={new URL(site.url).hostname}
-                            secondary={`Analyzed ${new Date(
-                                site.analyzedAt
-                            ).toLocaleString()}`}
+                            primary={site.title || new URL(site.url).hostname}
+                            secondary={`Analyzed ${new Date(site.date).toLocaleString()}`}
                             sx={{
                                 mr: 2,
                                 '& .MuiListItemText-primary': {

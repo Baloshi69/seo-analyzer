@@ -6,27 +6,50 @@ import urlFetcher from './urlFetcher';
 
 export class SeoAnalyzer {
     async analyze(url: string): Promise<SeoAnalysis> {
-        const html = await urlFetcher.fetchHtml(url);
-        const document = parseHTML(html);
+        console.log(`Starting analysis for URL: ${url}`);
         
-        const loadTimeMetrics = await urlFetcher.measureLoadTime(url);
-        
-        return {
-            url,
-            title: this.analyzeTitle(document),
-            metaDescription: this.analyzeMetaDescription(document),
-            headings: this.analyzeHeadings(document),
-            images: this.analyzeImages(document),
-            loadTime: {
-                ...loadTimeMetrics,
-                isOptimal: this.isLoadTimeOptimal(loadTimeMetrics)
-            },
-            socialTags: {
-                openGraph: this.getOpenGraphTags(document),
-                twitter: this.getTwitterTags(document)
-            },
-            recentSites: [] // This will be handled by the storage service
-        };
+        try {
+            const html = await urlFetcher.fetchHtml(url);
+            console.log(`HTML fetched successfully. Length: ${html.length}`);
+            
+            if (!html || html.length < 100) {
+                console.error('HTML content is too short or empty');
+                throw new Error('Failed to fetch proper HTML content');
+            }
+            
+            const document = parseHTML(html);
+            console.log('HTML parsed successfully');
+            
+            // Debug the parsed document
+            console.log('Title:', document.querySelector('title')?.textContent);
+            console.log('Meta description:', document.querySelector('meta[name="description"]')?.getAttribute('content'));
+            
+            const loadTimeMetrics = await urlFetcher.measureLoadTime(url);
+            console.log('Load time metrics:', loadTimeMetrics);
+            
+            const result = {
+                url,
+                title: this.analyzeTitle(document),
+                metaDescription: this.analyzeMetaDescription(document),
+                headings: this.analyzeHeadings(document),
+                images: this.analyzeImages(document),
+                loadTime: {
+                    ...loadTimeMetrics,
+                    isOptimal: this.isLoadTimeOptimal(loadTimeMetrics)
+                },
+                socialTags: {
+                    openGraph: this.getOpenGraphTags(document),
+                    twitter: this.getTwitterTags(document)
+                },
+                recentSites: [] // This will be populated later
+            };
+            
+            console.log('Analysis completed successfully:', result);
+            return result;
+        } catch (error) {
+            console.error('Error during analysis:', error);
+            throw error;
+        }
     }
 
     private analyzeTitle(document: Document) {

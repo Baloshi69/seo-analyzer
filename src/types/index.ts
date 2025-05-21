@@ -18,7 +18,8 @@ export interface SocialPreview {
 
 export interface RecentSite {
     url: string;
-    analyzedAt: Date;
+    title?: string;
+    date: string;
 }
 
 export interface SeoAnalysis {
